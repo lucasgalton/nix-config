@@ -75,10 +75,10 @@
           warn: 70
   '';
 
-  # Kubie configuration
-  xdg.configFile."kubie.yaml".text = ''
+  # Kubie configuration (must be at ~/.kube/kubie.yaml)
+  home.file.".kube/kubie.yaml".text = ''
     prompt:
-      zsh_use_rps1: false
+      disable: true  # Using starship for k8s context display instead
     behavior:
       validate_namespaces: true
     configs:

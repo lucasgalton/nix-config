@@ -260,16 +260,13 @@
         deleted = "✘$count";
       };
 
-      # Kubernetes context (uses kubie)
+      # Kubernetes context - only show when kubie is active
       kubernetes = {
         disabled = false;
         symbol = "⎈ ";
         style = "bold blue";
         format = "[$symbol$context( \\($namespace\\))]($style) ";
-        # Only show when in a k8s-related directory or context is set
-        detect_files = ["Dockerfile" "docker-compose.yml" "docker-compose.yaml" "helmfile.yaml" "Chart.yaml" "kustomization.yaml" "Tiltfile"];
-        detect_folders = ["charts" "kustomize" "k8s" "kubernetes" "manifests"];
-        detect_extensions = [];
+        detect_env_vars = ["KUBIE_ACTIVE"];
       };
 
       # Command duration (only show if > 2 seconds)
