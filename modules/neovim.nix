@@ -164,8 +164,11 @@
       # Which-key hints
       { mode = "n"; key = "<leader>?"; action = "<cmd>WhichKey<cr>"; options.desc = "Which key"; }
 
-      # Session (vim-obsession)
-      { mode = "n"; key = "<leader>ss"; action = "<cmd>Obsession<cr>"; options.desc = "Toggle session tracking"; }
+      # Telescope LSP/Search
+      { mode = "n"; key = "<leader>ss"; action = "<cmd>Telescope lsp_document_symbols<cr>"; options.desc = "Document symbols"; }
+      { mode = "n"; key = "<leader>sS"; action = "<cmd>Telescope lsp_workspace_symbols<cr>"; options.desc = "Workspace symbols"; }
+      { mode = "n"; key = "<leader>sd"; action = "<cmd>Telescope diagnostics bufnr=0<cr>"; options.desc = "Buffer diagnostics"; }
+      { mode = "n"; key = "<leader>sD"; action = "<cmd>Telescope diagnostics<cr>"; options.desc = "Workspace diagnostics"; }
     ];
 
     # Plugins
@@ -202,6 +205,10 @@
       nvim-tree = {
         enable = true;
         settings = {
+          update_focused_file = {
+            enable = true;
+            update_root = false;
+          };
           filters.dotfiles = false;
           view.width = 35;
           renderer = {
@@ -245,7 +252,7 @@
           { __unkeyed-1 = "<leader>d"; group = "debug/diagnostics"; }
           { __unkeyed-1 = "<leader>f"; group = "file/find"; }
           { __unkeyed-1 = "<leader>g"; group = "git"; }
-          { __unkeyed-1 = "<leader>s"; group = "search/session"; }
+          { __unkeyed-1 = "<leader>s"; group = "search/symbols"; }
         ];
       };
 
