@@ -8,6 +8,13 @@
     syntaxHighlighting.enable = true;
     enableCompletion = true;
 
+    # Set BEFORE plugins load (via .zshenv)
+    envExtra = ''
+      # zsh-abbr: notify when a command could have been an abbreviation
+      export ABBR_GET_AVAILABLE_ABBREVIATION=1
+      export ABBR_LOG_AVAILABLE_ABBREVIATION=1
+    '';
+
     history = {
       size = 50000;
       save = 50000;
@@ -105,6 +112,7 @@
 
       # Autosuggestions strategy (abbreviations plugin loaded via plugins list)
       ZSH_AUTOSUGGEST_STRATEGY=(abbreviations history completion)
+
     '';
 
     plugins = [

@@ -125,18 +125,7 @@
       bind N new-session
 
       # Sesh session picker (prefix + T for quick switch)
-      bind-key T run-shell "sesh connect \"$(
-        sesh list --icons | fzf-tmux -p 55%,60% \
-          --no-sort --ansi --border-label ' sesh ' --prompt '⚡  ' \
-          --header '  ^a all ^t tmux ^g configs ^x zoxide ^d tmux kill ^f find' \
-          --bind 'tab:down,btab:up' \
-          --bind 'ctrl-a:change-prompt(⚡  )+reload(sesh list --icons)' \
-          --bind 'ctrl-t:change-prompt(🪟  )+reload(sesh list -t --icons)' \
-          --bind 'ctrl-g:change-prompt(⚙️  )+reload(sesh list -c --icons)' \
-          --bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z --icons)' \
-          --bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
-          --bind 'ctrl-d:execute(tmux kill-session -t {2..})+change-prompt(⚡  )+reload(sesh list --icons)' \
-        )\""
+      bind-key T run-shell "${config.home.homeDirectory}/.config/tmux/sesh-picker.sh"
 
       # Clear screen and history
       bind C-l send-keys 'C-l' \; clear-history
@@ -182,6 +171,35 @@
           fi
         fi
       done < "$RESURRECT_FILE"
+    '';
+  };
+
+  # Sesh session picker script with full Nix paths
+  xdg.configFile."tmux/sesh-picker.sh" = {
+    executable = true;
+    text = ''
+      #!${pkgs.bash}/bin/bash
+
+      SESH="${pkgs.sesh}/bin/sesh"
+      FZF="${pkgs.fzf}/bin/fzf"
+      FZF_TMUX="${pkgs.fzf}/bin/fzf-tmux"
+      FD="${pkgs.fd}/bin/fd"
+      TMUX="${pkgs.tmux}/bin/tmux"
+
+      selection=$($SESH list --icons | $FZF_TMUX -p 55%,60% \
+        --no-sort --ansi --border-label ' sesh ' --prompt '⚡  ' \
+        --header '  ^a all ^t tmux ^g configs ^x zoxide ^d tmux kill ^f find' \
+        --bind 'tab:down,btab:up' \
+        --bind "ctrl-a:change-prompt(⚡  )+reload($SESH list --icons)" \
+        --bind "ctrl-t:change-prompt(🪟  )+reload($SESH list -t --icons)" \
+        --bind "ctrl-g:change-prompt(⚙️  )+reload($SESH list -c --icons)" \
+        --bind "ctrl-x:change-prompt(📁  )+reload($SESH list -z --icons)" \
+        --bind "ctrl-f:change-prompt(🔎  )+reload($FD -H -d 2 -t d -E .Trash . ~)" \
+        --bind "ctrl-d:execute($TMUX kill-session -t {2..})+change-prompt(⚡  )+reload($SESH list --icons)")
+
+      if [ -n "$selection" ]; then
+        $SESH connect "$selection"
+      fi
     '';
   };
 }
