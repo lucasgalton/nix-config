@@ -63,6 +63,7 @@
       ".idea/"
       ".vscode/"
       "*.sublime-*"
+      ".session*.vim"
 
       # Nix
       "result"

@@ -13,6 +13,13 @@
       # zsh-abbr: notify when a command could have been an abbreviation
       export ABBR_GET_AVAILABLE_ABBREVIATION=1
       export ABBR_LOG_AVAILABLE_ABBREVIATION=1
+
+      # FZF configuration
+      export FZF_DEFAULT_COMMAND="fd --type f --hidden --follow --exclude .git"
+      export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+      export FZF_CTRL_T_COMMAND="fd --type f --hidden --follow --exclude .git"
+      export FZF_ALT_C_COMMAND="fd --type d --hidden --follow --exclude .git"
+      export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always --icons {} | head -200'"
     '';
 
     history = {
@@ -203,6 +210,9 @@
     ];
     fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
     changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+    changeDirWidgetOptions = [
+      "--preview 'eza --tree --color=always --icons {} | head -200'"
+    ];
   };
 
   # Zoxide for smart cd

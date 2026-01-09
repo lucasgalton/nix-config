@@ -46,7 +46,6 @@
     lazyssh
 
     # Session management
-    sesh
     tmuxinator
 
     # Networking
