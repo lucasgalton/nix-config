@@ -45,6 +45,10 @@
     mynav
     lazyssh
 
+    # Session management
+    sesh
+    tmuxinator
+
     # Networking
     httpie
     dnsutils

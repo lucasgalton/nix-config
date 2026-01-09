@@ -76,6 +76,11 @@
       pkgsFor = system: import nixpkgs {
         inherit system;
         overlays = [ nodejsFixOverlay customPackagesOverlay ];
+        config = {
+          allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+            "zsh-abbr"
+          ];
+        };
       };
 
       # Helper function to create a home-manager configuration

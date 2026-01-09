@@ -4,7 +4,7 @@
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
-    autosuggestion.enable = true;
+    # autosuggestion loaded manually via plugins to control order
     syntaxHighlighting.enable = true;
     enableCompletion = true;
 
@@ -24,51 +24,24 @@
       "..." = "cd ../..";
       "...." = "cd ../../..";
 
-      # Modern replacements
+      # Modern replacements (simple command swaps stay as aliases)
       ls = "eza -lah --icons --group-directories-first --git";
       ll = "eza -la --icons --group-directories-first --git";
       la = "eza -a --icons --group-directories-first --git";
       lt = "eza --tree --icons --group-directories-first --git";
       cat = "bat";
 
-      # Git shortcuts
+      # Simple single-letter shortcuts stay as aliases
       g = "git";
-      gs = "git status";
-      gd = "git diff";
-      ga = "git add";
-      gc = "git commit";
-      gp = "git push";
-      gl = "git pull";
-      gco = "git checkout";
-      gb = "git branch";
-      glog = "git log --oneline --graph --decorate";
-
-      # Kubernetes shortcuts
       k = "kubectl";
-      kx = "kubie ctx";
-      kn = "kubie ns";
-      kgp = "kubectl get pods";
-      kgs = "kubectl get svc";
-      kgd = "kubectl get deployments";
-      kga = "kubectl get all";
-      kgn = "kubectl get namespaces";
-      klogs = "kubectl logs -f";
-      kdesc = "kubectl describe";
-      kexec = "kubectl exec -it";
-
-      # Docker/Podman
       d = "docker";
-      dc = "docker compose";
       p = "podman";
-      pc = "podman-compose";
 
-      # Misc
+      # Misc simple replacements
       tf = "tofu";
       terraform = "tofu";
       vim = "nvim";
       vi = "nvim";
-
-      # Node version management (fnm aliased as nvm)
       nvm = "fnm";
     };
 
@@ -86,11 +59,6 @@
     '';
 
     initContent = ''
-      # Enable Powerlevel10k instant prompt
-      if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
-        source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
-      fi
-
       # Better history search with arrow keys
       bindkey '^[[A' history-substring-search-up
       bindkey '^[[B' history-substring-search-down
@@ -135,16 +103,11 @@
         eval "$(fnm env --use-on-cd)"
       fi
 
-      # Load Powerlevel10k config
-      [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+      # Autosuggestions strategy (abbreviations plugin loaded via plugins list)
+      ZSH_AUTOSUGGEST_STRATEGY=(abbreviations history completion)
     '';
 
     plugins = [
-      {
-        name = "powerlevel10k";
-        src = pkgs.zsh-powerlevel10k;
-        file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-      }
       {
         name = "zsh-history-substring-search";
         src = pkgs.zsh-history-substring-search;
@@ -160,11 +123,65 @@
         src = pkgs.zsh-fzf-tab;
         file = "share/fzf-tab/fzf-tab.plugin.zsh";
       }
+      {
+        name = "zsh-abbr";
+        src = pkgs.zsh-abbr;
+        file = "share/zsh/zsh-abbr/zsh-abbr.zsh";
+      }
+      {
+        name = "zsh-autosuggestions-abbreviations-strategy";
+        src = pkgs.zsh-autosuggestions-abbreviations-strategy;
+        file = "share/zsh/site-functions/zsh-autosuggestions-abbreviations-strategy.plugin.zsh";
+      }
+      {
+        name = "zsh-autosuggestions";
+        src = pkgs.zsh-autosuggestions;
+        file = "share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh";
+      }
     ];
+
   };
 
-  # Powerlevel10k prompt
-  home.file.".p10k.zsh".source = ../config/p10k.zsh;
+  # zsh-abbr abbreviations (expanded inline as you type, unlike aliases)
+  xdg.configFile."zsh/abbreviations".text = ''
+    # Git commands (expanded so you see full command before running)
+    abbr gs="git status"
+    abbr gd="git diff"
+    abbr ga="git add"
+    abbr gc="git commit"
+    abbr gp="git push"
+    abbr gl="git pull"
+    abbr gco="git checkout"
+    abbr gb="git branch"
+    abbr glog="git log --oneline --graph --decorate"
+
+    # Kubernetes (complex commands benefit from expansion)
+    abbr kx="kubie ctx"
+    abbr kn="kubie ns"
+    abbr kgp="kubectl get pods"
+    abbr kgs="kubectl get svc"
+    abbr kgd="kubectl get deployments"
+    abbr kga="kubectl get all"
+    abbr kgn="kubectl get namespaces"
+    abbr klogs="kubectl logs -f"
+    abbr kdesc="kubectl describe"
+    abbr kexec="kubectl exec -it"
+    abbr kep="kubectl edit pod"
+    abbr ked="kubectl edit deployment"
+    abbr kes="kubectl edit svc"
+    abbr kaf="kubectl apply -f"
+    abbr kdf="kubectl delete -f"
+    abbr krr="kubectl rollout restart"
+
+    # Docker/Podman
+    abbr dc="docker compose"
+    abbr pc="podman-compose"
+    abbr dps="docker ps"
+    abbr dpa="docker ps -a"
+    abbr di="docker images"
+    abbr drm="docker rm"
+    abbr drmi="docker rmi"
+  '';
 
   # FZF integration
   programs.fzf = {
@@ -184,5 +201,98 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+  };
+
+  # Starship prompt - single line, minimal left, info on right
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = {
+      # Single line prompt format
+      format = lib.concatStrings [
+        "$directory"
+        "$character"
+      ];
+
+      # Right side with git and kubernetes info
+      right_format = lib.concatStrings [
+        "$git_branch"
+        "$git_status"
+        "$kubernetes"
+        "$cmd_duration"
+      ];
+
+      # Minimal directory display
+      directory = {
+        truncation_length = 3;
+        truncate_to_repo = true;
+        style = "bold cyan";
+        format = "[$path]($style) ";
+      };
+
+      # Clean character prompt
+      character = {
+        success_symbol = "[➜](bold green)";
+        error_symbol = "[✗](bold red)";
+        vimcmd_symbol = "[](bold green)";
+      };
+
+      # Git branch
+      git_branch = {
+        symbol = " ";
+        style = "bold purple";
+        format = "[$symbol$branch(:$remote_branch)]($style) ";
+      };
+
+      # Git status with symbols
+      git_status = {
+        style = "bold yellow";
+        format = "([$all_status$ahead_behind]($style) )";
+        conflicted = "=";
+        ahead = "⇡$count";
+        behind = "⇣$count";
+        diverged = "⇕⇡$ahead_count⇣$behind_count";
+        untracked = "?$count";
+        stashed = "*$count";
+        modified = "!$count";
+        staged = "+$count";
+        renamed = "»$count";
+        deleted = "✘$count";
+      };
+
+      # Kubernetes context (uses kubie)
+      kubernetes = {
+        disabled = false;
+        symbol = "⎈ ";
+        style = "bold blue";
+        format = "[$symbol$context( \\($namespace\\))]($style) ";
+        # Only show when in a k8s-related directory or context is set
+        detect_files = ["Dockerfile" "docker-compose.yml" "docker-compose.yaml" "helmfile.yaml" "Chart.yaml" "kustomization.yaml" "Tiltfile"];
+        detect_folders = ["charts" "kustomize" "k8s" "kubernetes" "manifests"];
+        detect_extensions = [];
+      };
+
+      # Command duration (only show if > 2 seconds)
+      cmd_duration = {
+        min_time = 2000;
+        style = "bold yellow";
+        format = "[$duration]($style) ";
+      };
+
+      # Disable modules we don't need for cleaner prompt
+      aws.disabled = true;
+      azure.disabled = true;
+      gcloud.disabled = true;
+      package.disabled = true;
+      nodejs.disabled = true;
+      python.disabled = true;
+      golang.disabled = true;
+      rust.disabled = true;
+      java.disabled = true;
+      php.disabled = true;
+      ruby.disabled = true;
+      terraform.disabled = true;
+      docker_context.disabled = true;
+    };
   };
 }

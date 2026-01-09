@@ -11,6 +11,8 @@
     extraPlugins = with pkgs.vimPlugins; [
       catppuccin-nvim
       vim-obsession  # Continuous session tracking for tmux-resurrect
+      smear-cursor-nvim
+      neoscroll-nvim
     ];
 
     extraConfigLuaPre = ''
@@ -28,6 +30,27 @@
         },
       })
       vim.cmd.colorscheme "catppuccin"
+
+      -- Smear cursor for smooth cursor animation
+      require("smear_cursor").setup({
+        stiffness = 0.8,
+        trailing_stiffness = 0.5,
+        distance_stop_animating = 0.5,
+        hide_target_hack = false,
+      })
+
+      -- Neoscroll for smooth scrolling
+      require("neoscroll").setup({
+        mappings = { "<C-u>", "<C-d>", "<C-b>", "<C-f>", "<C-y>", "<C-e>", "zt", "zz", "zb" },
+        hide_cursor = true,
+        stop_eof = true,
+        respect_scrolloff = false,
+        cursor_scrolls_alone = true,
+        easing = "quadratic",
+        pre_hook = nil,
+        post_hook = nil,
+        performance_mode = false,
+      })
     '';
 
     # General options (lazyvim-like)
@@ -119,8 +142,9 @@
       { mode = "n"; key = "<leader>cr"; action = "<cmd>lua vim.lsp.buf.rename()<cr>"; options.desc = "Rename"; }
       { mode = "n"; key = "<leader>cf"; action = "<cmd>lua vim.lsp.buf.format()<cr>"; options.desc = "Format"; }
       { mode = "n"; key = "<leader>cd"; action = "<cmd>lua vim.diagnostic.open_float()<cr>"; options.desc = "Line diagnostics"; }
-      { mode = "n"; key = "[d"; action = "<cmd>lua vim.diagnostic.goto_prev()<cr>"; options.desc = "Previous diagnostic"; }
-      { mode = "n"; key = "]d"; action = "<cmd>lua vim.diagnostic.goto_next()<cr>"; options.desc = "Next diagnostic"; }
+      # AZERTY-friendly navigation (replaces awkward [ and ] keys)
+      { mode = "n"; key = "<leader>dp"; action = "<cmd>lua vim.diagnostic.goto_prev()<cr>"; options.desc = "Previous diagnostic"; }
+      { mode = "n"; key = "<leader>dn"; action = "<cmd>lua vim.diagnostic.goto_next()<cr>"; options.desc = "Next diagnostic"; }
 
       # Git
       { mode = "n"; key = "<leader>gg"; action = "<cmd>LazyGit<cr>"; options.desc = "LazyGit"; }
@@ -189,6 +213,27 @@
               file = true;
             };
           };
+          # AZERTY-friendly keybindings
+          on_attach.__raw = ''
+            function(bufnr)
+              local api = require("nvim-tree.api")
+              local function opts(desc)
+                return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+              end
+
+              -- Default mappings
+              api.config.mappings.default_on_attach(bufnr)
+
+              -- AZERTY-friendly: use . to cd into directory (change root)
+              vim.keymap.set("n", ".", api.tree.change_root_to_node, opts("CD into directory"))
+              -- Use - to go up (change root to parent)
+              vim.keymap.set("n", "-", api.tree.change_root_to_parent, opts("CD to parent"))
+              -- Use l to open/expand node
+              vim.keymap.set("n", "l", api.node.open.edit, opts("Open"))
+              -- Use h to close directory
+              vim.keymap.set("n", "h", api.node.navigate.parent_close, opts("Close Directory"))
+            end
+          '';
         };
       };
 
@@ -197,10 +242,10 @@
         settings.spec = [
           { __unkeyed-1 = "<leader>b"; group = "buffer"; }
           { __unkeyed-1 = "<leader>c"; group = "code"; }
-          { __unkeyed-1 = "<leader>d"; group = "debug"; }
+          { __unkeyed-1 = "<leader>d"; group = "debug/diagnostics"; }
           { __unkeyed-1 = "<leader>f"; group = "file/find"; }
           { __unkeyed-1 = "<leader>g"; group = "git"; }
-          { __unkeyed-1 = "<leader>s"; group = "search"; }
+          { __unkeyed-1 = "<leader>s"; group = "search/session"; }
         ];
       };
 
