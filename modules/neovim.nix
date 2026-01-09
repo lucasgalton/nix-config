@@ -111,7 +111,7 @@
       # Buffers
       { mode = "n"; key = "<S-h>"; action = "<cmd>bprevious<cr>"; options.desc = "Previous buffer"; }
       { mode = "n"; key = "<S-l>"; action = "<cmd>bnext<cr>"; options.desc = "Next buffer"; }
-      { mode = "n"; key = "<leader>bd"; action = "<cmd>bdelete<cr>"; options.desc = "Delete buffer"; }
+      { mode = "n"; key = "<leader>bd"; action = "<cmd>lua require('mini.bufremove').delete()<cr>"; options.desc = "Delete buffer"; }
 
       # Clear search
       { mode = "n"; key = "<Esc>"; action = "<cmd>nohlsearch<cr>"; options.desc = "Clear search highlighting"; }
@@ -519,8 +519,19 @@
 
     };
 
-    # Auto-start vim-obsession for session tracking (tmux-resurrect integration)
+    # Auto commands
     autoCmd = [
+      # Open nvim-tree on startup
+      {
+        event = [ "VimEnter" ];
+        pattern = [ "*" ];
+        callback.__raw = ''
+          function()
+            require("nvim-tree.api").tree.open()
+          end
+        '';
+      }
+      # Auto-start vim-obsession for session tracking (tmux-resurrect integration)
       {
         event = [ "VimEnter" ];
         pattern = [ "*" ];

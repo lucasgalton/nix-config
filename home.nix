@@ -31,7 +31,6 @@
     yq-go
     ripgrep
     fd
-    bat
     eza
     tree
     htop
@@ -61,4 +60,10 @@
     enable = true;
     nix-direnv.enable = true;
   };
+
+  # Bat
+  programs.bat.enable = true;
+
+  # Enable catppuccin for bat
+  catppuccin.bat.enable = true;
 }
